@@ -5,9 +5,9 @@
 
 function GameBoard () {
     const board = [
-    ["O","X","X"],
-    ["X","X","O"],
-    [0,"O","X"]
+    ["O","X","O"],
+    ["X","O","O"],
+    [0,"X","X"]
 ];
 
 
@@ -62,7 +62,7 @@ function GameController () {
         console.log("it's " + activePlayer.name + "'s turn...");
     }
 
-    setActivePlayer(playerTwo);
+    setActivePlayer(playerOne);
 
 
     const playRound = function (row, column) {
@@ -84,12 +84,12 @@ function GameController () {
 
     const GameOverCondition = function(board) {
         const rowWin = function () {
-            board.forEach(row => {
-            if (row[0] === row[1] && row[1] === row[2] && row[1] !== 0) {
-                return true;
+            for (row of board) {
+                if (row[0] === row[1] && row[1] === row[2] && row[1] !== 0) {
+                    return true;
+                }
             }
-        
-        })};
+        };
 
         const columnWin = function () {
             if(board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[1][0]!== 0 || board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[1][1] !== 0 || board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[1][2] !== 0 ) {
