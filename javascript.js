@@ -5,9 +5,9 @@
 
 function GameBoard () {
     const board = [
-    ["O","X","O"],
-    ["X","O","O"],
-    [0,"X","X"]
+    [0,0,0],
+    [0,0,0],
+    [0,0,0]
 ];
 
 
@@ -16,9 +16,11 @@ function GameBoard () {
     const dropToken = function (row, column, playerToken) {
         if (!(board[row][column])) {
             board[row][column] = playerToken;
+            return true;
         }
         else {
             console.log("Already checked");
+            return false;
         }
     }
 
@@ -51,6 +53,7 @@ function GameController () {
     const boardState = board.getBoardState();
     const playerOne = players.playerOne;
     const playerTwo = players.playerTwo;
+    board.printBoard();
     let activePlayer;
 
     const setActivePlayer = function (player) {
@@ -58,26 +61,31 @@ function GameController () {
         console.log("it's " + activePlayer.name + "'s turn...");
     }
 
-    const getActivePlayer = function (activePlayer) {
+    const getActivePlayer = function () {
         console.log("it's " + activePlayer.name + "'s turn...");
     }
 
-    setActivePlayer(playerOne);
+    setActivePlayer(playerTwo);
 
 
     const playRound = function (row, column) {
-        board.dropToken(row, column, activePlayer.token);
+        const turn = board.dropToken(row, column, activePlayer.token);
         board.printBoard();
         const checkWinner = GameOverCondition(boardState);
         if (checkWinner) {
             endGame(checkWinner);
         }
         else {
-            if (activePlayer === playerOne) {
-                setActivePlayer(playerTwo);
+            if (!turn){
+                setActivePlayer(activePlayer) ;
             }
             else {
-                setActivePlayer(playerOne);
+                if (activePlayer === playerOne) {
+                    setActivePlayer(playerTwo);
+                }
+                else {
+                    setActivePlayer(playerOne);
+                }
             }
         }
     }
