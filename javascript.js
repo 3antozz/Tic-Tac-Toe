@@ -1,22 +1,26 @@
 (function init (){
-    GameBoard();
-    GameController();
-    DOMRender();
+    const board = GameBoard();
+    const game = GameController(board);
+    const DOMHandler = DOMRender(board);
+    clickHandler(board, game, DOMHandler);
 })()
 
 function GameBoard () {
     const board = [
-    [0,"X","X"],
-    ["X","X","X"],
-    ["X","X",0]
+    [0,0,0],
+    [0,0,0],
+    [0,0,0]
 ];
 
-
+    const getCellState = (row, column) => {
+        console.log(board[row][column]);
+        return board[row][column];
+    }
     const printBoard = () => console.log(board);
     const getBoardState = () => board;
-    const dropToken = function (row, column, playerToken) {
+    const dropMark = function (row, column, playermark) {
         if (!(board[row][column])) {
-            board[row][column] = playerToken;
+            board[row][column] = playermark;
             return true;
         }
         else {
@@ -24,8 +28,15 @@ function GameBoard () {
             return false;
         }
     }
+    const clearBoard = function () {
+        board.forEach((row, rowIndex) => {
+            row.forEach((column, columnIndex) => {
+                board[rowIndex][columnIndex] = 0;
+            });
+        });
+    }
 
-    return {getBoardState, printBoard, dropToken};
+    return {getBoardState, getCellState, printBoard, dropMark, clearBoard};
 };
 
 
@@ -33,12 +44,12 @@ function Player (nameone, nametwo) {
 
         const playerOne = {
             name: nameone,
-            token: "X"
+            mark: "X"
         };
 
         const playerTwo = {
             name: nametwo,
-            token: "O"
+            mark: "O"
         };
 
         const printPlayers = () => console.log(playerOne, playerTwo);
@@ -48,9 +59,8 @@ function Player (nameone, nametwo) {
 
 
 
-function GameController () {
+function GameController (board) {
     const players = Player("3antozz", "Haithem");
-    const board = GameBoard();
     const boardState = board.getBoardState();
     const playerOne = players.playerOne;
     const playerTwo = players.playerTwo;
@@ -70,14 +80,14 @@ function GameController () {
 
 
     const playRound = function (row, column) {
-        const turn = board.dropToken(row, column, activePlayer.token);
+        const turnPlay = board.dropMark(row, column, activePlayer.mark);
         board.printBoard();
         const checkWinner = GameOverCondition(boardState);
         if (checkWinner) {
             endGame(checkWinner);
         }
         else {
-            if (!turn){
+            if (!turnPlay){
                 setActivePlayer(activePlayer) ;
             }
             else {
@@ -123,17 +133,6 @@ function GameController () {
             return true;
         }
 
-        // const tie = function () {
-        //     for (let row of board) {
-        //         for (let cell of row) {
-        //             if (cell === 0) {
-        //                 return false;
-        //             }
-        //         }
-        //     }
-        //     return true;
-        // }
-
 
         if (rowWin() || columnWin() || diagonalWin()) {
             return true;
@@ -156,26 +155,26 @@ function GameController () {
     }
 
 
+
+
     return {getActivePlayer, playRound};
 }
 
-function DOMRender () {
-    const board = GameBoard();
-    const game = GameController();
-    const boardState = board.getBoardState();
-    const mainDiv = document.querySelector(".main");
+function DOMRender (board) {
     const gridContainer = document.querySelector(".grid-container");
+    const boardState = board.getBoardState();
 
     const renderGrid = function (board) {
-        board.forEach(row => {
-            row.forEach(cell => renderCell(cell));
+        gridContainer.textContent = "";
+        board.forEach((row, rowIndex) => {
+            row.forEach((cell, column) => renderCell(cell, rowIndex, column));
             
         });
 
     }
 
-    const renderCell = function (cell) {
-        const cellDiv = document.createElement("div");
+    const renderCell = function (cell, row, column) {
+        const cellDiv = document.createElement("button");;
         if (!cell) {
             cellDiv.textContent = "";
         }
@@ -183,10 +182,42 @@ function DOMRender () {
             cellDiv.textContent = cell;
         }
         cellDiv.classList.add("cell");
+        cellDiv.dataset.row = row;
+        cellDiv.dataset.column = column;
         gridContainer.append(cellDiv);
     }
 
+    const updateCell = function (cellDOM, row, column) {
+        const cellState = board.getCellState(row, column);
+        cellDOM.textContent = cellState;
+    }
+
+
+
+
+
+
     renderGrid(boardState);
+
+
+    return {renderGrid, updateCell}
+}
+
+function clickHandler (board, game, DOMHandler) {
+    const restartBtn = document.querySelector(".restart");
+    const gridContainer = document.querySelector(".grid-container");
+    gridContainer.addEventListener("click", (event) => {
+        let cellDOM = event.target;
+        let cell = event.target.dataset;
+        game.playRound(cell.row, cell.column);
+        DOMHandler.updateCell(cellDOM, cell.row, cell.column);
+    });
+
+    restartBtn.addEventListener("click", () => {
+        const boardState = board.getBoardState();
+        board.clearBoard();
+        DOMHandler.renderGrid(boardState);
+    })
 }
 
 
