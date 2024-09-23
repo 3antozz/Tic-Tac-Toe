@@ -25,3 +25,47 @@
   #root, #__next {
     isolation: isolate;
   }
+
+  body {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    text-align: center;
+    background-color: rgb(167, 33, 167);
+    color: white;
+    padding: 1.5rem;
+  }
+
+  .footer {
+    background-color: rgb(167, 33, 167);
+    padding: 0.5rem;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+  }
+
+  .main {
+    background-color: pink;
+    flex: 1;
+    align-content: center;
+  }
+
+
+  .grid-container {
+    margin: auto;
+    height: 80%;
+    width: 35%;
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  }
+
+  .cell {
+    font-weight: 500;
+    font-size: 3rem;
+    align-content: center;
+    border: 1px solid red;
+    text-align: center;
+  }

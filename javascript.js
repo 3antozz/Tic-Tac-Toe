@@ -1,13 +1,14 @@
 (function init (){
     GameBoard();
-    // GameController();
+    GameController();
+    DOMRender();
 })()
 
 function GameBoard () {
     const board = [
-    [0,0,0],
-    [0,0,0],
-    [0,0,0]
+    [0,"X","X"],
+    ["X","X","X"],
+    ["X","X",0]
 ];
 
 
@@ -124,8 +125,8 @@ function GameController () {
 
         // const tie = function () {
         //     for (let row of board) {
-        //         for (let column of row) {
-        //             if (column === 0) {
+        //         for (let cell of row) {
+        //             if (cell === 0) {
         //                 return false;
         //             }
         //         }
@@ -158,6 +159,36 @@ function GameController () {
     return {getActivePlayer, playRound};
 }
 
+function DOMRender () {
+    const board = GameBoard();
+    const game = GameController();
+    const boardState = board.getBoardState();
+    const mainDiv = document.querySelector(".main");
+    const gridContainer = document.querySelector(".grid-container");
+
+    const renderGrid = function (board) {
+        board.forEach(row => {
+            row.forEach(cell => renderCell(cell));
+            
+        });
+
+    }
+
+    const renderCell = function (cell) {
+        const cellDiv = document.createElement("div");
+        if (!cell) {
+            cellDiv.textContent = "";
+        }
+        else {
+            cellDiv.textContent = cell;
+        }
+        cellDiv.classList.add("cell");
+        gridContainer.append(cellDiv);
+    }
+
+    renderGrid(boardState);
+}
 
 
-const game = GameController();
+
+// const game = GameController();
