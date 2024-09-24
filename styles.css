@@ -7,7 +7,6 @@
   }
   * {
     margin: 0;
-    color: white;
   }
   body {
     line-height: 1.5;
@@ -37,11 +36,12 @@
     text-align: center;
     background-color: rgb(167, 33, 167);
     padding: 1.5rem;
+    color: white;
   }
 
   .footer {
-    background-color: rgb(167, 33, 167);
-    padding: 0.5rem;
+    background-color: pink;
+    padding: 0.3rem;
     text-align: center;
     font-weight: bold;
   }
@@ -50,22 +50,37 @@
     background-color: pink;
     flex: 1;
     display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+
+  .restart {
+    display: block;
+    width: 50%;
+    font-size: 2.2rem;
+    background-color: rgb(167, 33, 167);
+    border-radius: 20px;
+    color: white;
+  }
+
+  .center-content {
+    display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
   }
 
-  .restart {
-    display: block;
-    width: 12%;
-    font-size: 2.2rem;
-    background-color: rgb(167, 33, 167);
-    border-radius: 20px;
+  .P-2 {
+    order: 2;
+  }
+
+  .player-turn {
+    line-height: 1;
   }
 
 
   .grid-container {
-    width: 28%;
+    width: 28vw;
     aspect-ratio: 1 / 1;
     display: grid;
     grid-template: repeat(3, 1fr) / repeat(3, 1fr);
@@ -73,7 +88,6 @@
   }
 
   .cell {
-    color: black;
     background-color: pink;
     font-weight: 500;
     font-size: 4rem;
@@ -81,3 +95,59 @@
     border: 1px solid red;
     text-align: center;
   }
+
+  .cell:hover {
+    background-color: rgb(242, 216, 220);
+    cursor: pointer ;
+  }
+
+
+
+  dialog::backdrop {
+    backdrop-filter: blur(10px);
+  }
+
+  dialog {
+    font-size: 1.2rem;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  dialog h1 {
+    line-height: 0.5;
+  }
+
+  form {
+    height: 35dvh;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  dialog button {
+    align-self: stretch;
+    border-radius: 10px;
+  }
+
+  form > div {
+    display: flex;
+    gap: 1rem;
+  }
+
+  input {
+    border-radius: 5px;
+    padding: 0 0.5rem;
+  }
+
+
+
+
+
+

@@ -10,11 +10,40 @@
         <h1>Tic Tac Toe</h1>
     </div>
     <div class="main">
-        <div class="grid-container">
+        <div class="P-1">
+            <h2 class="player-name">Player 1</h2>
+            <h2 class="player-mark">X</h2>
         </div>
+        <div class="P-2">
+            <h2 class="player-name">Player 2</h2>
+            <h2 class="player-mark">O</h2>
+        </div>
+        <div class="center-content">
+            <h1 class="player-turn">Player's Turn</h1>
+            <div class="grid-container">
+
+            </div>
         <button type="button" class="restart">Restart</button>
+        </div>
     </div>
-    <div class="footer">Copyright © EL 3antozz 2024 ;)</div>
+    <p class="footer">Copyright © EL 3antozz 2024 ;)</p>
+    <dialog>
+        <form method="dialog">
+            <h1>Players Setup</h1>
+            <div class="p1-name">
+                <label for="p-one-name">Player 1:</label>
+                <input type="text" id="p-one-name" required>
+                <button type="button" class="toggle-one" id="toggleButtonOne" aria-label="Toggle between X and O">X</button>
+            </div>
+            <div class="p2-name">
+                <label for="p-two-name">Player 2:</label>
+                <input type="text" id="p-two-name" required>
+                <button type="button" class="toggle-two" id="toggleButtonTwo" aria-label="Toggle between X and O">O</button>
+            </div>
+            <button class="start">Start</button>
+        </form>
+    </dialog>
+
 
 
 

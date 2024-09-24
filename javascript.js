@@ -1,8 +1,31 @@
 (function init (){
+    const startBtn = document.querySelector(".start");
+    const playerOneInput = document.querySelector(".p1-name > input");
+    const playerTwoInput = document.querySelector(".p2-name > input");
+    const p1Toggle = document.querySelector(".toggle-one");
+    const p2Toggle = document.querySelector(".toggle-two");
     const board = GameBoard();
-    const game = GameController(board);
     const DOMHandler = DOMRender(board);
-    clickHandler(board, game, DOMHandler);
+    startBtn.addEventListener("click", () => {
+        const playerOneName = playerOneInput.value;
+        const playerTwoName = playerTwoInput.value;
+        const playerOneMark = p1Toggle.textContent;
+        const playerTwoMark = p2Toggle.textContent;
+        const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
+        console.log(players.playerOne);
+        console.log(players.playerTwo);
+        const game = GameController(board, players);
+        boardClicksHandler(board, game, DOMHandler);
+    })
+
+    p1Toggle.addEventListener("click", () => {
+        DOMHandler.switchMark(p1Toggle);
+        DOMHandler.switchMark(p2Toggle);
+    });
+    p2Toggle.addEventListener("click", () => {
+        DOMHandler.switchMark(p1Toggle);
+        DOMHandler.switchMark(p2Toggle);
+    })
 })()
 
 function GameBoard () {
@@ -13,7 +36,6 @@ function GameBoard () {
 ];
 
     const getCellState = (row, column) => {
-        console.log(board[row][column]);
         return board[row][column];
     }
     const printBoard = () => console.log(board);
@@ -40,16 +62,16 @@ function GameBoard () {
 };
 
 
-function Player (nameone, nametwo) {
+function Player (nameone, markone, nametwo, marktwo) {
 
         const playerOne = {
             name: nameone,
-            mark: "X"
+            mark: markone
         };
 
         const playerTwo = {
             name: nametwo,
-            mark: "O"
+            mark: marktwo
         };
 
         const printPlayers = () => console.log(playerOne, playerTwo);
@@ -59,24 +81,34 @@ function Player (nameone, nametwo) {
 
 
 
-function GameController (board) {
-    const players = Player("3antozz", "Haithem");
+function GameController (board, players) {
     const boardState = board.getBoardState();
     const playerOne = players.playerOne;
     const playerTwo = players.playerTwo;
+    let gameOver = false;
     board.printBoard();
     let activePlayer;
+    let firstPlayer = playerOne;
 
     const setActivePlayer = function (player) {
         activePlayer = player;
         console.log("it's " + activePlayer.name + "'s turn...");
     }
 
-    const getActivePlayer = function () {
-        console.log("it's " + activePlayer.name + "'s turn...");
+    const getActivePlayer = () => activePlayer;
+
+
+    const switchFirstPlayer = function () {
+        if (firstPlayer === playerOne) {
+            firstPlayer = playerTwo;
+        }
+        else {
+            firstPlayer = playerOne;
+        }
     }
 
-    setActivePlayer(playerTwo);
+    const getFirstPlayer = () => firstPlayer;
+
 
 
     const playRound = function (row, column) {
@@ -111,13 +143,16 @@ function GameController (board) {
         };
 
         const columnWin = function () {
-            if(board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[1][0]!== 0 || board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[1][1] !== 0 || board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[1][2] !== 0 ) {
+            if(board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[1][0] !== 0 ||
+               board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[1][1] !== 0 ||
+               board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[1][2] !== 0 ) {
                 return true;
             }
         }
 
         const diagonalWin = function () {
-            if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] !== 0 || board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] !== 0) {
+            if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] !== 0 ||
+                board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] !== 0) {
                 return true;
             }
         }
@@ -152,18 +187,23 @@ function GameController (board) {
         else {
             console.log("Game over! it's a Tie!" )
         }
+        gameOver = true;
     }
 
+    const isGameOver = () => gameOver;
+    const gameOverSetter = () => gameOver = false;
+
+ 
+    setActivePlayer(playerOne);
 
 
 
-    return {getActivePlayer, playRound};
+    return {getActivePlayer, setActivePlayer, getFirstPlayer, switchFirstPlayer, playRound, isGameOver, gameOverSetter};
 }
 
 function DOMRender (board) {
     const gridContainer = document.querySelector(".grid-container");
     const boardState = board.getBoardState();
-
     const renderGrid = function (board) {
         gridContainer.textContent = "";
         board.forEach((row, rowIndex) => {
@@ -192,6 +232,23 @@ function DOMRender (board) {
         cellDOM.textContent = cellState;
     }
 
+    const modal = (function () {
+        const dialog = document.querySelector("dialog");
+        dialog.showModal();
+    })()
+
+    const switchMark = function (button) {
+        if (button.textContent === "X") {
+            button.textContent = "O";
+        }
+        else {
+            button.textContent = "X";
+        }
+
+    }
+
+
+
 
 
 
@@ -200,26 +257,39 @@ function DOMRender (board) {
     renderGrid(boardState);
 
 
-    return {renderGrid, updateCell}
+    return {renderGrid, updateCell, switchMark}
 }
 
-function clickHandler (board, game, DOMHandler) {
+function boardClicksHandler (board, game, DOMHandler) {
     const restartBtn = document.querySelector(".restart");
     const gridContainer = document.querySelector(".grid-container");
     gridContainer.addEventListener("click", (event) => {
-        let cellDOM = event.target;
-        let cell = event.target.dataset;
-        game.playRound(cell.row, cell.column);
-        DOMHandler.updateCell(cellDOM, cell.row, cell.column);
+        if (event.target === gridContainer) {
+            return;
+        }
+        const isGameOver = game.isGameOver();
+        if (isGameOver) {
+            return;
+        }
+        else {
+            let cellDOM = event.target;
+            let cell = event.target.dataset;
+            game.playRound(cell.row, cell.column);
+            DOMHandler.updateCell(cellDOM, cell.row, cell.column);
+        }
     });
 
     restartBtn.addEventListener("click", () => {
         const boardState = board.getBoardState();
         board.clearBoard();
         DOMHandler.renderGrid(boardState);
+        game.gameOverSetter();
+        game.switchFirstPlayer();
+        game.setActivePlayer(game.getFirstPlayer());
     })
+
+
+
+
 }
 
-
-
-// const game = GameController();
