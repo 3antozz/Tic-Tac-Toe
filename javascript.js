@@ -6,20 +6,23 @@
     const p2Toggle = document.querySelector(".toggle-two");
     const board = GameBoard();
     const DOMHandler = DOMRender(board);
+    const form = document.querySelector("form");
 
     const startGame = (function () {
         startBtn.addEventListener("click", () => {
-            const playerOneName = playerOneInput.value;
-            const playerTwoName = playerTwoInput.value;
-            const playerOneMark = p1Toggle.textContent;
-            const playerTwoMark = p2Toggle.textContent;
-            const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
-            console.log(players.playerOne);
-            console.log(players.playerTwo);
-            const game = GameController(board, players, DOMHandler);
-            boardClicksHandler(board, game, DOMHandler);
-            DOMHandler.renderPlayers(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
-            DOMHandler.renderActivePlayer(game.getActivePlayer());
+            if (form.checkValidity()) {
+                const playerOneName = playerOneInput.value;
+                const playerTwoName = playerTwoInput.value;
+                const playerOneMark = p1Toggle.textContent;
+                const playerTwoMark = p2Toggle.textContent;
+                const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
+                console.log(players.playerOne);
+                console.log(players.playerTwo);
+                const game = GameController(board, players, DOMHandler);
+                boardClicksHandler(board, game, DOMHandler);
+                DOMHandler.renderPlayers(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
+                DOMHandler.renderActivePlayer(game.getActivePlayer());
+            }
         })
     
         p1Toggle.addEventListener("click", () => {
@@ -175,9 +178,12 @@ function GameController (board, players, DOMHandler) {
 
 
         if (rowWin() || columnWin() || diagonalWin()) {
+            gameOver = true;
             return true;
+
         }
         else if (tie()){
+            gameOver = "tie";
             return "tie";
         }
         else {
@@ -192,7 +198,6 @@ function GameController (board, players, DOMHandler) {
         else {
             console.log("Game over! it's a Tie!" )
         }
-        gameOver = true;
     }
 
     const isGameOver = () => gameOver;
@@ -272,6 +277,10 @@ function DOMRender (board) {
         activePlayer.textContent = player.name + " has Won!"
     }
 
+    const renderTie = function () {
+        activePlayer.textContent = "It's a Tie!"
+    }
+
 
 
 
@@ -282,7 +291,7 @@ function DOMRender (board) {
     renderGrid(boardState);
 
 
-    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner}
+    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner, renderTie}
 }
 
 function boardClicksHandler (board, game, DOMHandler) {
@@ -301,8 +310,11 @@ function boardClicksHandler (board, game, DOMHandler) {
             game.playRound(cell.row, cell.column);
             DOMHandler.updateCell(cellDOM, cell.row, cell.column);
             DOMHandler.renderActivePlayer(game.getActivePlayer());
-            if (game.isGameOver()) {
+            if (game.isGameOver() === true) {
                 DOMHandler.renderWinner(game.getActivePlayer());
+            }
+            else if (game.isGameOver() === "tie") {
+                DOMHandler.renderTie();
             }
         }
     });
