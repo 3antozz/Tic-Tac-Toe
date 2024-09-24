@@ -6,26 +6,31 @@
     const p2Toggle = document.querySelector(".toggle-two");
     const board = GameBoard();
     const DOMHandler = DOMRender(board);
-    startBtn.addEventListener("click", () => {
-        const playerOneName = playerOneInput.value;
-        const playerTwoName = playerTwoInput.value;
-        const playerOneMark = p1Toggle.textContent;
-        const playerTwoMark = p2Toggle.textContent;
-        const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
-        console.log(players.playerOne);
-        console.log(players.playerTwo);
-        const game = GameController(board, players);
-        boardClicksHandler(board, game, DOMHandler);
-    })
 
-    p1Toggle.addEventListener("click", () => {
-        DOMHandler.switchMark(p1Toggle);
-        DOMHandler.switchMark(p2Toggle);
-    });
-    p2Toggle.addEventListener("click", () => {
-        DOMHandler.switchMark(p1Toggle);
-        DOMHandler.switchMark(p2Toggle);
-    })
+    const startGame = (function () {
+        startBtn.addEventListener("click", () => {
+            const playerOneName = playerOneInput.value;
+            const playerTwoName = playerTwoInput.value;
+            const playerOneMark = p1Toggle.textContent;
+            const playerTwoMark = p2Toggle.textContent;
+            const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
+            console.log(players.playerOne);
+            console.log(players.playerTwo);
+            const game = GameController(board, players, DOMHandler);
+            boardClicksHandler(board, game, DOMHandler);
+            DOMHandler.renderPlayers(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
+            DOMHandler.renderActivePlayer(game.getActivePlayer());
+        })
+    
+        p1Toggle.addEventListener("click", () => {
+            DOMHandler.switchPlayerMark(p1Toggle);
+            DOMHandler.switchPlayerMark(p2Toggle);
+        });
+        p2Toggle.addEventListener("click", () => {
+            DOMHandler.switchPlayerMark(p1Toggle);
+            DOMHandler.switchPlayerMark(p2Toggle);
+        })
+    })()
 })()
 
 function GameBoard () {
@@ -81,7 +86,7 @@ function Player (nameone, markone, nametwo, marktwo) {
 
 
 
-function GameController (board, players) {
+function GameController (board, players, DOMHandler) {
     const boardState = board.getBoardState();
     const playerOne = players.playerOne;
     const playerTwo = players.playerTwo;
@@ -203,6 +208,11 @@ function GameController (board, players) {
 
 function DOMRender (board) {
     const gridContainer = document.querySelector(".grid-container");
+    const Name1 = document.querySelector(".P-1 .player-name");
+    const Name2 = document.querySelector(".P-2 .player-name");
+    const Mark1 = document.querySelector(".P-1 .player-mark");
+    const Mark2 = document.querySelector(".P-2 .player-mark");
+    const activePlayer = document.querySelector(".player-turn");
     const boardState = board.getBoardState();
     const renderGrid = function (board) {
         gridContainer.textContent = "";
@@ -237,7 +247,7 @@ function DOMRender (board) {
         dialog.showModal();
     })()
 
-    const switchMark = function (button) {
+    const switchPlayerMark = function (button) {
         if (button.textContent === "X") {
             button.textContent = "O";
         }
@@ -245,6 +255,21 @@ function DOMRender (board) {
             button.textContent = "X";
         }
 
+    }
+
+    const renderPlayers = function (name1, mark1, name2, mark2) {
+        Name1.textContent = name1;
+        Mark1.textContent = mark1;
+        Name2.textContent = name2;
+        Mark2.textContent = mark2;
+    }
+
+    const renderActivePlayer = function (player) {
+        activePlayer.textContent = player.name + "'s Turn";
+    }
+
+    const renderWinner = function (player) {
+        activePlayer.textContent = player.name + " has Won!"
     }
 
 
@@ -257,7 +282,7 @@ function DOMRender (board) {
     renderGrid(boardState);
 
 
-    return {renderGrid, updateCell, switchMark}
+    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner}
 }
 
 function boardClicksHandler (board, game, DOMHandler) {
@@ -267,8 +292,7 @@ function boardClicksHandler (board, game, DOMHandler) {
         if (event.target === gridContainer) {
             return;
         }
-        const isGameOver = game.isGameOver();
-        if (isGameOver) {
+        if (game.isGameOver()) {
             return;
         }
         else {
@@ -276,6 +300,10 @@ function boardClicksHandler (board, game, DOMHandler) {
             let cell = event.target.dataset;
             game.playRound(cell.row, cell.column);
             DOMHandler.updateCell(cellDOM, cell.row, cell.column);
+            DOMHandler.renderActivePlayer(game.getActivePlayer());
+            if (game.isGameOver()) {
+                DOMHandler.renderWinner(game.getActivePlayer());
+            }
         }
     });
 
@@ -286,6 +314,7 @@ function boardClicksHandler (board, game, DOMHandler) {
         game.gameOverSetter();
         game.switchFirstPlayer();
         game.setActivePlayer(game.getFirstPlayer());
+        DOMHandler.renderActivePlayer(game.getFirstPlayer());
     })
 
 
