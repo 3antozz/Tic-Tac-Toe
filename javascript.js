@@ -71,7 +71,7 @@ function Player (nameone, markone, nametwo, marktwo) {
         const playerOne = {
             name: nameone,
             mark: markone,
-            color: "green",
+            color: "blue",
             score: 0
         };
 
@@ -124,7 +124,7 @@ function GameController (board, players) {
         const checkWinner = GameOverCondition(boardState);
         if (!checkWinner) {
             if (!turnPlay){
-                setActivePlayer(activePlayer) ;
+                return "Sell taken";
             }
             else {
                 if (activePlayer === playerOne) {
@@ -135,30 +135,41 @@ function GameController (board, players) {
                 }
             }
         }
+
+        return checkWinner;
     }
 
     const GameOverCondition = function(board) {
         const rowWin = function () {
-            for (row of board) {
+            for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+                let row = board[rowIndex];
                 if (row[0] === row[1] && row[1] === row[2] && row[1] !== 0) {
-                    return true;
+                    return [[rowIndex, 0],[rowIndex, 1],[rowIndex, 2]];
                 }
             }
         };
 
         const columnWin = function () {
-            if(board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[1][0] !== 0 ||
-               board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[1][1] !== 0 ||
-               board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[1][2] !== 0 ) {
-                return true;
+            if(board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[1][0] !== 0) {
+                return [[0,0],[1,0],[2,0]];
             }
-        }
+            else if (board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[1][1] !== 0) {
+                return [[0,1],[1,1],[2,1]];
+            }
+            else if (board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[1][2] !== 0) {
+                return [[0,2],[1,2],[2,2]];
+            }
+            }
 
         const diagonalWin = function () {
-            if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] !== 0 ||
-                board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] !== 0) {
-                return true;
+            if (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[1][1] !== 0){
+                return [[0,0],[1,1],[2,2]];
             }
+            else if (board[0][2] === board[1][1] && board[1][1] === board[2][0] && board[1][1] !== 0){
+                return [[0,2],[1,1],[2,0]];
+            }
+
+            
         }
 
         const tie = function () {
@@ -173,9 +184,10 @@ function GameController (board, players) {
         }
 
 
-        if (rowWin() || columnWin() || diagonalWin()) {
+        let winningCells = rowWin() || columnWin() || diagonalWin();
+        if (winningCells) {
             gameOver = true;
-            return true;
+            return winningCells;
 
         }
         else if (tie()){
@@ -189,8 +201,6 @@ function GameController (board, players) {
 
     const isGameOver = () => gameOver;
     const gameOverSetter = () => gameOver = false;
-
- 
     setActivePlayer(playerOne);
 
 
@@ -233,9 +243,10 @@ function DOMRender (board) {
         gridContainer.append(cellDiv);
     }
 
-    const updateCell = function (cellDOM, row, column) {
+    const updateCell = function (cellDOM, row, column, player) {
         const cellState = board.getCellState(row, column);
         cellDOM.textContent = cellState;
+        cellDOM.style.color = player.color;
     }
 
     const modal = (function () {
@@ -267,7 +278,7 @@ function DOMRender (board) {
 
     const renderWinner = function (player) {
         activePlayer.textContent = player.name + " has Won!"
-        if (player.color === "green") {
+        if (player.color === "blue") {
             playerOneCup.style.display = "block";
         }
         else {
@@ -276,7 +287,7 @@ function DOMRender (board) {
     }
 
     const hideCup = function (player) {
-        if (player.color === "green") {
+        if (player.color === "blue") {
             playerOneCup.style.display = "none";
         }
         else {
@@ -286,11 +297,11 @@ function DOMRender (board) {
 
     const renderTie = function () {
         activePlayer.textContent = "It's a Tie!";
-        activePlayer.style.color = "blue";
+        activePlayer.style.color = "green";
     }
 
     const renderScore = function(player) {
-        if (player.color === "green") {
+        if (player.color === "blue") {
             playerOneScore.textContent = "Score: " + player.score;
         }
         else {
@@ -299,17 +310,17 @@ function DOMRender (board) {
 
     }
 
-
-
-
-
-
-
+    const highlightCells = function(cellsArray){
+        cellsArray.forEach(cell => {
+            const cellDOM = document.querySelector(`[data-row="${cell[0]}"][data-column="${cell[1]}"]`);
+            cellDOM.style.backgroundColor = "#00ff00de";
+        });
+    }
 
     renderGrid(boardState);
 
 
-    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner, renderTie, renderScore, hideCup}
+    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner, renderTie, renderScore, hideCup, highlightCells}
 }
 
 function boardClicksHandler (board, game, DOMHandler) {
@@ -323,18 +334,24 @@ function boardClicksHandler (board, game, DOMHandler) {
             return;
         }
         else {
+            const previousPlayer = game.getActivePlayer();
             let cellDOM = event.target;
             let cell = event.target.dataset;
-            game.playRound(cell.row, cell.column);
-            DOMHandler.updateCell(cellDOM, cell.row, cell.column);
+            const playRound = game.playRound(cell.row, cell.column);
+            if (playRound === "Sell taken") {
+                return;
+            };
             const activePlayer = game.getActivePlayer();
+            DOMHandler.updateCell(cellDOM, cell.row, cell.column, previousPlayer);
             DOMHandler.renderActivePlayer(activePlayer);
-            if (game.isGameOver() === true) {
+            const isGameOver = game.isGameOver();
+            if (isGameOver == true && isGameOver !== "tie") {
+                DOMHandler.highlightCells(playRound);
                 DOMHandler.renderWinner(activePlayer);
                 game.increaseScore(activePlayer);
                 DOMHandler.renderScore(activePlayer);
             }
-            else if (game.isGameOver() === "tie") {
+            else if (isGameOver === "tie") {
                 DOMHandler.renderTie();
             }
         }
@@ -350,9 +367,6 @@ function boardClicksHandler (board, game, DOMHandler) {
         game.setActivePlayer(game.getFirstPlayer());
         DOMHandler.renderActivePlayer(game.getFirstPlayer());
     })
-
-
-
 
 }
 
