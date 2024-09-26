@@ -16,9 +16,7 @@
                 const playerOneMark = p1Toggle.textContent;
                 const playerTwoMark = p2Toggle.textContent;
                 const players = Player(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
-                console.log(players.playerOne);
-                console.log(players.playerTwo);
-                const game = GameController(board, players, DOMHandler);
+                const game = GameController(board, players);
                 boardClicksHandler(board, game, DOMHandler);
                 DOMHandler.renderPlayers(playerOneName, playerOneMark, playerTwoName, playerTwoMark);
                 DOMHandler.renderActivePlayer(game.getActivePlayer());
@@ -46,7 +44,6 @@ function GameBoard () {
     const getCellState = (row, column) => {
         return board[row][column];
     }
-    const printBoard = () => console.log(board);
     const getBoardState = () => board;
     const dropMark = function (row, column, playermark) {
         if (!(board[row][column])) {
@@ -54,7 +51,6 @@ function GameBoard () {
             return true;
         }
         else {
-            console.log("Already checked");
             return false;
         }
     }
@@ -66,7 +62,7 @@ function GameBoard () {
         });
     }
 
-    return {getBoardState, getCellState, printBoard, dropMark, clearBoard};
+    return {getBoardState, getCellState, dropMark, clearBoard};
 };
 
 
@@ -74,33 +70,34 @@ function Player (nameone, markone, nametwo, marktwo) {
 
         const playerOne = {
             name: nameone,
-            mark: markone
+            mark: markone,
+            color: "green",
+            score: 0
         };
 
         const playerTwo = {
             name: nametwo,
-            mark: marktwo
+            mark: marktwo,
+            color: "red",
+            score: 0
         };
 
-        const printPlayers = () => console.log(playerOne, playerTwo);
 
-        return {playerOne, playerTwo, printPlayers};
+        return {playerOne, playerTwo};
 }
 
 
 
-function GameController (board, players, DOMHandler) {
+function GameController (board, players) {
     const boardState = board.getBoardState();
     const playerOne = players.playerOne;
     const playerTwo = players.playerTwo;
     let gameOver = false;
-    board.printBoard();
     let activePlayer;
     let firstPlayer = playerOne;
 
     const setActivePlayer = function (player) {
         activePlayer = player;
-        console.log("it's " + activePlayer.name + "'s turn...");
     }
 
     const getActivePlayer = () => activePlayer;
@@ -117,16 +114,15 @@ function GameController (board, players, DOMHandler) {
 
     const getFirstPlayer = () => firstPlayer;
 
+    const increaseScore = (player) => ++player.score;
+    const getPlayerScore = (player) => player.score;
+
 
 
     const playRound = function (row, column) {
         const turnPlay = board.dropMark(row, column, activePlayer.mark);
-        board.printBoard();
         const checkWinner = GameOverCondition(boardState);
-        if (checkWinner) {
-            endGame(checkWinner);
-        }
-        else {
+        if (!checkWinner) {
             if (!turnPlay){
                 setActivePlayer(activePlayer) ;
             }
@@ -191,15 +187,6 @@ function GameController (board, players, DOMHandler) {
         }
     }
 
-    const endGame = function (decision){
-        if (decision === true) {
-            console.log("Game over! " + activePlayer.name + " wins!" )
-        }
-        else {
-            console.log("Game over! it's a Tie!" )
-        }
-    }
-
     const isGameOver = () => gameOver;
     const gameOverSetter = () => gameOver = false;
 
@@ -208,7 +195,7 @@ function GameController (board, players, DOMHandler) {
 
 
 
-    return {getActivePlayer, setActivePlayer, getFirstPlayer, switchFirstPlayer, playRound, isGameOver, gameOverSetter};
+    return {getActivePlayer, setActivePlayer, getFirstPlayer, switchFirstPlayer, increaseScore, playRound, isGameOver, gameOverSetter, getPlayerScore};
 }
 
 function DOMRender (board) {
@@ -218,6 +205,10 @@ function DOMRender (board) {
     const Mark1 = document.querySelector(".P-1 .player-mark");
     const Mark2 = document.querySelector(".P-2 .player-mark");
     const activePlayer = document.querySelector(".player-turn");
+    const playerOneCup = document.querySelector(".P-1 img");
+    const playerTwoCup = document.querySelector(".P-2 img");
+    const playerOneScore = document.querySelector(".P-1 .score");
+    const playerTwoScore = document.querySelector(".P-2 .score");
     const boardState = board.getBoardState();
     const renderGrid = function (board) {
         gridContainer.textContent = "";
@@ -271,14 +262,41 @@ function DOMRender (board) {
 
     const renderActivePlayer = function (player) {
         activePlayer.textContent = player.name + "'s Turn";
+        activePlayer.style.color = player.color;
     }
 
     const renderWinner = function (player) {
         activePlayer.textContent = player.name + " has Won!"
+        if (player.color === "green") {
+            playerOneCup.style.display = "block";
+        }
+        else {
+            playerTwoCup.style.display = "block";
+        }
+    }
+
+    const hideCup = function (player) {
+        if (player.color === "green") {
+            playerOneCup.style.display = "none";
+        }
+        else {
+            playerTwoCup.style.display = "none";
+        }
     }
 
     const renderTie = function () {
-        activePlayer.textContent = "It's a Tie!"
+        activePlayer.textContent = "It's a Tie!";
+        activePlayer.style.color = "blue";
+    }
+
+    const renderScore = function(player) {
+        if (player.color === "green") {
+            playerOneScore.textContent = "Score: " + player.score;
+        }
+        else {
+            playerTwoScore.textContent = "Score: " + player.score;
+        }
+
     }
 
 
@@ -291,7 +309,7 @@ function DOMRender (board) {
     renderGrid(boardState);
 
 
-    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner, renderTie}
+    return {renderGrid, updateCell, switchPlayerMark, renderPlayers, renderActivePlayer, renderWinner, renderTie, renderScore, hideCup}
 }
 
 function boardClicksHandler (board, game, DOMHandler) {
@@ -309,9 +327,12 @@ function boardClicksHandler (board, game, DOMHandler) {
             let cell = event.target.dataset;
             game.playRound(cell.row, cell.column);
             DOMHandler.updateCell(cellDOM, cell.row, cell.column);
-            DOMHandler.renderActivePlayer(game.getActivePlayer());
+            const activePlayer = game.getActivePlayer();
+            DOMHandler.renderActivePlayer(activePlayer);
             if (game.isGameOver() === true) {
-                DOMHandler.renderWinner(game.getActivePlayer());
+                DOMHandler.renderWinner(activePlayer);
+                game.increaseScore(activePlayer);
+                DOMHandler.renderScore(activePlayer);
             }
             else if (game.isGameOver() === "tie") {
                 DOMHandler.renderTie();
@@ -323,6 +344,7 @@ function boardClicksHandler (board, game, DOMHandler) {
         const boardState = board.getBoardState();
         board.clearBoard();
         DOMHandler.renderGrid(boardState);
+        DOMHandler.hideCup(game.getActivePlayer());
         game.gameOverSetter();
         game.switchFirstPlayer();
         game.setActivePlayer(game.getFirstPlayer());
